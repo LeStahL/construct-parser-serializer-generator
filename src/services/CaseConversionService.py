@@ -105,3 +105,12 @@ class CaseConversionService:
             ))
             pascal[0] = pascal[0].lower()
             return pascal
+
+    def convertTo(self, identifier: str, toCase: Case) -> str:
+        return self.convert(identifier, self.detect(identifier), toCase)
+    
+    def convertToSnake(self, identifier) -> str:
+        return self.convertTo(identifier, Case.SNAKE_CASE)
+    
+    def convertToMacro(self, identifier) -> str:
+        return self.convertTo(identifier, Case.MACRO_CASE)

@@ -4,47 +4,38 @@
  * Note: If you plan to edit this file, please reconsider your plan.
  */
 
-#ifndef {{ info.nameUpperCase }}_H
-#define {{ info.nameUpperCase }}_H
+#ifndef {{ caseConversionService.convertToMacro(info.baseName) }}_H
+#define {{ caseConversionService.convertToMacro(info.baseName) }}_H
 
 #include <stdint.h>
 
-#define {{ info.nameUpperCase }}_SIZE {{ info.size }}
-{% for renamed in info.structStack %}
+{%- for renamed in info.structStack %}
+
 typedef struct {
     {%- for subcon in renamed.subcons %}
-    {{ generatorService.cType(subcon) }} {{ subcon.name }};
+    {{ generatorService.cType(subcon) }} {{ caseConversionService.convertToSnake(subcon.name) }};
     {%- endfor %}
-} {{ renamed.name }}_t;
-{% endfor %}
+} {{ caseConversionService.convertToSnake(renamed.name) }}_t;
+{%- endfor %}
 
-{%- if info.needsMalloc %}
-#include <stdlib.h>
+#ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF
+// Sizeof-related forward declarations
+size_t sizeof_{{ caseConversionService.convertToSnake(info.baseName) }}({{ caseConversionService.convertToSnake(info.baseName) }}_t *instance);
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF */
 
-// Allocation-related forward declarations. 
-{{ info.nameSnakeCase }}_t *{{ info.nameSnakeCase }}_create(void);
-void {{ info.nameSnakeCase }}_destroy({{ info.nameSnakeCase }}_t *instance);
-{%- endif %}
-
-#ifdef {{ info.nameUpperCase }}_PARSER
+#ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER
 #include <stdbool.h>
 // Parser-related forward declarations.
-bool parse_{{ info.nameSnakeCase }}({{ info.nameSnakeCase }}_t *instance, uint8_t *source);
-#endif /* {{ info.nameUpperCase }}_PARSER */
+bool parse_{{ caseConversionService.convertToSnake(info.baseName) }}({{ caseConversionService.convertToSnake(info.baseName) }}_t *instance, uint8_t *source);
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER */
 
-#ifdef {{ info.nameUpperCase }}_SERIALIZER
-// Serializer-related forward declarations
-void serialize_{{ info.nameSnakeCase }}({{ info.nameSnakeCase }}_t *instance, uint8_t *target);
-#endif /* {{ info.nameUpperCase }}_SERIALIZER */
+#ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER
+// Serializer-related forward declarations.
+void serialize_{{ caseConversionService.convertToSnake(info.baseName) }}({{ caseConversionService.convertToSnake(info.baseName) }}_t *instance, uint8_t *target);
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER */
 
-#ifdef {{ info.nameUpperCase }}_PRINTER
-#include <stdio.h>
-// Printer-related forward declarations.
-void dump_{{ info.nameSnakeCase }}({{ info.nameSnakeCase}}_t *instance);
-#endif /* {{ info.nameUpperCase }}_PRINTER */
-
-#ifdef {{ info.nameUpperCase }}_HEADER_ONLY
+#ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY
 #include "{{ info.baseName }}.c"
-#endif /* {{ info.nameUpperCase }}_HEADER_ONLY*/
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY*/
 
-#endif /* {{ info.nameUpperCase }}_H */
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_H */
