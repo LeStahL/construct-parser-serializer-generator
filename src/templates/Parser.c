@@ -9,7 +9,7 @@
 
 #ifndef {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY
 #include "{{ info.baseName }}.h"
-#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY*/
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY */
 
 {%- if info.needsMalloc %}
 #include <stdlib.h>

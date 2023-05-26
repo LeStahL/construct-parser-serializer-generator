@@ -36,6 +36,6 @@ void serialize_{{ caseConversionService.convertToSnake(info.baseName) }}({{ case
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY
 #include "{{ info.baseName }}.c"
-#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY*/
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY */
 
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_H */
