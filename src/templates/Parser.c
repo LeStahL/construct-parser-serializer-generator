@@ -4,18 +4,18 @@
  * Note: If you plan to edit this file, please reconsider your plan.
  */
 
-{%- macro generate_sizeof(tree, con) %}
+{%- macro generate_sizeof(_tree, con) %}
 size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *instance) {
     size_t result = 0.;
-    {%- for key in tree %}
-        {%- set subcon = tree[key] %}
+    {%- for key in _tree %}
+        {%- set subcon = _tree[key] %}
     // {{ key }} with type {{ generatorService.cType(subcon) }}:
         {%- if generatorService.hasComputableSize(subcon) %}
     result += {{ generatorService.computableSize(subcon) }};
         {%- else %}
-            {%- if generatorService.isArrayLike(key, tree) %}
-    result += {{ generatorService.instance(generatorService.referencedSize(tree, key), 'instance') }};
-            {%- elif generatorService.isStruct(key, tree) %}
+            {%- if generatorService.isArrayLike(key, _tree) %}
+    result += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
+            {%- elif generatorService.isStruct(key, _tree) %}
     result += sizeof_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }});
             {%- else %}
     // Unhandled @ {{ key }} / {{ subcon }}
@@ -26,32 +26,35 @@ size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConver
 }
 {%- endmacro %}
 
-{%- macro generate_parser(tree, con) %}
+{%- macro generate_parser(_tree, con) %}
 void parse_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *instance, uint8_t *source) {
     size_t offset = 0;
-    {%- for key in tree %}
-        {%- set subcon = tree[key] %}
+    {%- for key in _tree %}
+        {%- set subcon = _tree[key] %}
     // {{ key }} with type {{ generatorService.cType(subcon) }}:
         {%- if generatorService.hasComputableSize(subcon) %}
     {{ generatorService.instance(key, 'instance') }} = *({{ generatorService.cType(subcon) }} *)(source + offset);
     offset += {{ generatorService.computableSize(subcon) }};
         {%- else %}
-            {%- if generatorService.isString(key, tree) %}
-    {{ generatorService.instance(key, 'instance') }} = (char *) malloc({{ generatorService.instance(generatorService.referencedSize(tree, key), 'instance') }});
-    memcpy({{ generatorService.instance(key, 'instance') }}, source + offset, {{ generatorService.instance(generatorService.referencedSize(tree, key), 'instance') }});
-    offset += {{ generatorService.instance(generatorService.referencedSize(tree, key), 'instance') }};
-            {%- elif generatorService.isArray(key, tree) %}
+            {%- if generatorService.isString(key, _tree) %}
+    {{ generatorService.instance(key, 'instance') }} = (char *) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
+    memcpy({{ generatorService.instance(key, 'instance') }}, source + offset, {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
+    offset += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
+            {%- elif generatorService.isArray(key, _tree) %}
                 {%- set index = generatorService.uniqueIdentifier() %}
                 {%- set element_size_id = generatorService.uniqueIdentifier() %}
-    // TODO: Handle Struct Arrays and Primitive arrays differently
-    size_t {{ element_size_id }} = sizeof_{{ caseConversionService.convertToSnake(con.name) }}({{ generatorService.instance(key, 'instance') }});
-    {{ generatorService.instance(key, 'instance') }} = ({{ generatorService.cType(subcon) }} *) malloc({{ generatorService.instance(generatorService.referencedSize(tree, key), 'instance') }} * sizeof({{ generatorService.cType(subcon) }}));
-    for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(tree, key), 'instance') }}; ++{{ index }})
-        parse_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }}, source + offset + {{ index }} * {{ element_size_id }});
+    size_t {{ element_size_id }} = sizeof_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}({{ generatorService.instance(key, 'instance') }});
+    {{ generatorService.instance(key, 'instance') }} = ({{ generatorService.cType(subcon) }}) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }} * sizeof({{ generatorService.cType(subcon.subcon) }}));
+                {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
+    for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }})
+        parse_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}({{ generatorService.instance(key, 'instance') }}, source + offset + {{ index }} * {{ element_size_id }});
     }
-    offset += {{ element_size_id }} * {{ generatorService.instance(generatorService.referencedSize(tree, key), 'instance') }};
-            {%- elif generatorService.isStruct(key, tree) %}
-    parse_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }}, source + offset);
+                {%- else %}
+    memcpy({{ generatorService.instance(key, 'instance') }}, source + offset, {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
+                {% endif %}
+    offset += {{ element_size_id }} * {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
+            {%- elif generatorService.isStruct(key, _tree) %}
+    parse_{{ generatorService.cType(subcon.subcon) }}({{ generatorService.instance(key, 'instance') }}, source + offset);
     offset += sizeof_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }});
             {%- else %}
     // Unhandled @ {{ key }} / {{ subcon }}
