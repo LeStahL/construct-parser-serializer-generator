@@ -3,7 +3,7 @@ Generate parser and serializer code in C from constructs (https://github.com/con
 
 # Instructions
 Write a construct (documentation: https://construct.readthedocs.io/en/latest/index.html) and save it as Python module. For example
-```
+```Python
 from construct import Struct, Int8un, Int32un, Int32sn, this, StringEncoded, Bytes, Array
 
 exampleStructInstance = "exampleFormat" / Struct(
@@ -37,7 +37,7 @@ exampleStructInstance = "exampleFormat" / Struct(
 ```
 
 Run the command line tool:
-```
+```Bash
 python -m tool -v -o output -n ExampleFormat -i exampleStructInstance -m SimpleConstruct -f tests\SimpleConstruct.py
 ```
 
