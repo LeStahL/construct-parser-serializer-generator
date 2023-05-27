@@ -1,5 +1,5 @@
-# construct-c
-Generate parser and serializer code in C from constructs (https://github.com/construct/construct).
+# construct-parser-serializer-generator
+Generate parser and serializer code in C (and GLSL at some point in the future) from constructs (https://github.com/construct/construct).
 
 # Instructions
 Write a construct (documentation: https://construct.readthedocs.io/en/latest/index.html) and save it as Python module. For example
