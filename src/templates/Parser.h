@@ -4,6 +4,18 @@
  * Note: If you plan to edit this file, please reconsider your plan.
  */
 
+{%- macro generate_sizeof_forward_declarations(tree, con) %}
+size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *);
+{%- endmacro %}
+
+{%- macro generate_parse_forward_declarations(tree, con) %}
+void parse_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
+{%- endmacro %}
+
+{%- macro generate_serialize_forward_declarations(tree, con) %}
+void serialize_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
+{%- endmacro %}
+
 #ifndef {{ caseConversionService.convertToMacro(info.baseName) }}_H
 #define {{ caseConversionService.convertToMacro(info.baseName) }}_H
 
@@ -19,19 +31,24 @@ typedef struct {
 {%- endfor %}
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF
-// Sizeof-related forward declarations
-size_t sizeof_{{ caseConversionService.convertToSnake(info.baseName) }}({{ caseConversionService.convertToSnake(info.baseName) }}_t *instance);
+// Sizeof-related forward declarations.
+{%- for _struct in info.structStack %}
+    {{- generate_sizeof_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
+{%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER
-#include <stdbool.h>
 // Parser-related forward declarations.
-bool parse_{{ caseConversionService.convertToSnake(info.baseName) }}({{ caseConversionService.convertToSnake(info.baseName) }}_t *instance, uint8_t *source);
+{%- for _struct in info.structStack %}
+    {{- generate_parse_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
+{%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER
 // Serializer-related forward declarations.
-void serialize_{{ caseConversionService.convertToSnake(info.baseName) }}({{ caseConversionService.convertToSnake(info.baseName) }}_t *instance, uint8_t *target);
+{%- for _struct in info.structStack %}
+    {{- generate_serialize_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
+{%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY
