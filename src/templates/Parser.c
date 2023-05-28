@@ -18,6 +18,7 @@ size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConver
             {%- elif generatorService.isStruct(key, _tree) %}
     result += sizeof_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }});
             {%- else %}
+                {%- set error = logService.log("Unhandled key {} with construct {}.".format(key, subcon), StatusStrings.Error) %}
     // Unhandled @ {{ key }} / {{ subcon }}
             {%- endif %}
         {%- endif %}
@@ -57,6 +58,7 @@ void parse_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversio
     parse_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }}, source + offset);
     offset += sizeof_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }});
             {%- else %}
+                {%- set error = logService.log("Unhandled key {} with construct {}.".format(key, subcon), StatusStrings.Error) %}
     // Unhandled @ {{ key }} / {{ subcon }}
             {%- endif %}
         {%- endif %}

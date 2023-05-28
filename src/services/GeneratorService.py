@@ -104,19 +104,9 @@ class GeneratorService:
         return False
 
     def computableSize(self, subcon: Subconstruct, size: int = 0, depth=0, maxdepth=0) -> int:
-        # if type(subcon) in [
-        #     Struct,
-        # ]:
-            
-        
         if maxdepth != 0:
             if depth > maxdepth:
                 return size
-
-        if depth == 0:
-            print("====")
-        print("Computable size", subcon, size, depth, maxdepth)
-
         
         if type(subcon) in [
             FormatField,
@@ -132,12 +122,10 @@ class GeneratorService:
         return size
     
     def isInArray(self, key: str, tree: dict) -> bool:
-        print(tree)
         arrayList = list(filter(
             lambda _key: type(tree[_key]) is Array,
             tree.keys(),
         ))
-        print(arrayList)
         result = False
         groups = key.split('.')
         while len(groups) > 0:
@@ -198,16 +186,13 @@ class GeneratorService:
         return serial
     
     def subtree(self, parent: str, tree: dict) -> dict:
-        # print("Subtree", parent, tree)
         subKeys = list(filter(
             lambda key: key.startswith(parent) and key != parent and key.count('.') == parent.count('.') + 1,
             tree.keys(),
         ))
-        # print("subtree subKeys", subKeys)
         result = {}
         for subKey in subKeys:
             result[subKey] = tree[subKey]
-        # print("subtree",result)
         return result
     
     def this(self, tree: dict, identifier: str) -> dict:
@@ -222,8 +207,6 @@ class GeneratorService:
         return { key: tree[key] }
     
     def referencedSize(self, tree: dict, key: str) -> int:
-        # print(key, tree)
-        # print(dir(tree[key]))
         if type(tree[key]) is Array:
             return list(self.this(tree, tree[key].count._Path__field).keys())[0]    
         else:
@@ -232,18 +215,12 @@ class GeneratorService:
     def instance(self, key: str, identifier: str) -> str:
         return  '->'.join([identifier, '.'.join(key.split('.')[1:])])
  
-    # def arrayList(self, subcon: Subconstruct) -> Iterable:
-
-
     def generate(self, subcon: Subconstruct, outputDir: str, outputBaseName: str) -> None:
         structStack = self.structStack(subcon)
         self.logService.log('Generated struct stack.', StatusStrings.Success)
 
         tree = self.tree(subcon)
         self.logService.log('Generated traversable tree.', StatusStrings.Success)
-
-        # self.printSubconstruct(subcon)
-        # print(self.tree(subcon))
 
         class Info:
             def __init__(innerSelf) -> None:
@@ -259,6 +236,7 @@ class GeneratorService:
             f.write(self.sourceTemplate.render(
                 info=Info(),
                 generatorService=self,
+                logService=self.logService,
                 caseConversionService=self.caseConversionService,
             ))
             f.close()
@@ -269,6 +247,7 @@ class GeneratorService:
             f.write(self.headerTemplate.render(
                 info=Info(),
                 generatorService=self,
+                logService=self.logService,
                 caseConversionService=self.caseConversionService,
             ))
             f.close()
