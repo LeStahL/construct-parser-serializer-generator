@@ -16,7 +16,7 @@ class CaseConversionService:
 
     def hasUppercase(self, identifier: str) -> bool:
         for character in identifier:
-            if character.upper() == character:
+            if character.upper() == character and not character.isnumeric():
                 return True
         return False
     
