@@ -21,32 +21,38 @@ void serialize_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConve
 
 #include <stdint.h>
 
-{%- for renamed in info.structStack %}
-
+{%- for renamed in generatorService.structEnumStack(info.subcon) %}
+    {% if generatorService._isStruct(renamed.subcon) %}
 typedef struct {
-    {%- for subcon in renamed.subcons %}
+        {%- for subcon in renamed.subcons %}
     {{ generatorService.cType(subcon) }} {{ caseConversionService.convertToSnake(subcon.name) }};
-    {%- endfor %}
+        {%- endfor %}
+    {%- else %}
+typedef enum {
+        {%- for key, value in renamed.subcon.encmapping.items() %}
+    {{ key }} = {{ value }}{{ '' if loop.last else ',' }}
+        {%- endfor %}
+    {%- endif %}
 } {{ caseConversionService.convertToSnake(renamed.name) }}_t;
 {%- endfor %}
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF
 // Sizeof-related forward declarations.
-{%- for _struct in info.structStack %}
+{%- for _struct in generatorService.structStack(info.subcon) %}
     {{- generate_sizeof_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER
 // Parser-related forward declarations.
-{%- for _struct in info.structStack %}
+{%- for _struct in generatorService.structStack(info.subcon) %}
     {{- generate_parse_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER
 // Serializer-related forward declarations.
-{%- for _struct in info.structStack %}
+{%- for _struct in generatorService.structStack(info.subcon) %}
     {{- generate_serialize_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER */

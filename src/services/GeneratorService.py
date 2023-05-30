@@ -40,9 +40,11 @@ class GeneratorService:
             for subsubcon in subcon.subcons:
                 self.printSubconstruct(subsubcon, depth+1)
 
-    def structStack(self, subcon: Subconstruct, stack: Iterable = []):
-        if type(subcon) is Renamed and type(subcon.subcon) is Struct:
-            stack.append(subcon)
+    def structStack(self, subcon: Subconstruct, stack: Iterable = None):
+        if stack is None:
+            stack = []
+        if type(subcon) is Renamed and type(subcon.subcon) in [Struct]:
+            stack = [subcon] + stack
 
         if 'subcon' in dir(subcon):
             stack = self.structStack(subcon.subcon, stack)
@@ -52,13 +54,27 @@ class GeneratorService:
         
         return stack
     
+    def structEnumStack(self, subcon: Subconstruct, stack: Iterable = None):
+        if stack is None:
+            stack = []
+        if type(subcon) is Renamed and type(subcon.subcon) in [Struct, Enum]:
+            stack = [subcon] + stack
+
+        if 'subcon' in dir(subcon):
+            stack = self.structEnumStack(subcon.subcon, stack)
+        if 'subcons' in dir(subcon):
+            for subsubcon in subcon.subcons:
+                stack = self.structEnumStack(subsubcon, stack)
+
+        return stack
+
     def cType(self, subcon: Subconstruct) -> str:
         name = ""
         if type(subcon) is Renamed:
             name = subcon.name
             subcon = subcon.subcon
 
-        if type(subcon) is Struct:
+        if type(subcon) in [Struct, Enum]:
             return self.caseConversionService.convertToSnake(name) + '_t'
         elif type(subcon) is FormatField:
             if subcon.fmtstr[0] == '=':
@@ -85,6 +101,7 @@ class GeneratorService:
             Array,
             Struct,
             StringEncoded,
+            Enum,
         ]:
             return False
         
@@ -148,25 +165,33 @@ class GeneratorService:
     
     def isStruct(self, key: str, tree: dict) -> bool:
         return type(tree[key]) is Renamed and type(tree[key].subcon) is Struct
-   
+
+    def _isStruct(self, subcon: Subconstruct) -> bool:
+        return type(subcon) == Struct
+
     def isArrayLike(self, key: str, tree: dict) -> bool:
         return self.isArray(key, tree) or self.isString(key, tree)
+
+    def isEnum(self, key: str, tree: dict) -> bool:
+        return type(tree[key]) is Renamed and type(tree[key].subcon) is Enum
 
     def uniqueIdentifier(self) -> str:
         GeneratorService.UniqueIdentifierIndex += 1
         return "ra{}".format(GeneratorService.UniqueIdentifierIndex - 1)
     
-    def tree(self, subcon: Subconstruct, tree: str = "", serial: Iterable = None) -> dict:
+    def tree(self, subcon: Subconstruct, tree: str = "", serial: dict = None) -> dict:
         if serial is None:
             serial = {}
 
         if type(subcon) is Renamed:
             tree += ('.' if tree != "" else "") + self.caseConversionService.convertToSnake(subcon.name)
+
             if type(subcon.subcon) in [
                 FormatField,
                 Bytes,
                 Array,
                 Struct,
+                Enum,
             ]:
                 serial[tree] = subcon
 
@@ -175,8 +200,11 @@ class GeneratorService:
             Bytes,
             Array,
         ]:
-            serial[tree] = subcon         
-        
+            serial[tree] = subcon
+
+        if type(subcon) is Enum:
+            return serial
+
         if 'subcon' in dir(subcon):
             serial = self.tree(subcon.subcon, tree, serial)
         if 'subcons' in dir(subcon):
@@ -216,7 +244,6 @@ class GeneratorService:
         return  '->'.join([identifier, '.'.join(key.split('.')[1:])])
  
     def generate(self, subcon: Subconstruct, outputDir: str, outputBaseName: str) -> None:
-        structStack = self.structStack(subcon)
         self.logService.log('Generated struct stack.', StatusStrings.Success)
 
         tree = self.tree(subcon)
@@ -226,8 +253,6 @@ class GeneratorService:
             def __init__(innerSelf) -> None:
                 innerSelf.baseName = outputBaseName
                 innerSelf.now = datetime.now()
-                innerSelf.structStack = list(reversed(structStack))
-                innerSelf.needsMalloc = not self.hasComputableSize(subcon)
                 innerSelf.tree = tree
                 innerSelf.subcon = subcon
 

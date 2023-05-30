@@ -17,8 +17,9 @@ size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConver
     result += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
             {%- elif generatorService.isStruct(key, _tree) %}
     result += sizeof_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }});
+            {%- elif generatorService.isEnum(key, _tree) %}
+    result += {{ generatorService.computableSize(subcon) }};
             {%- else %}
-                {%- set error = logService.log("Unhandled key {} with construct {}.".format(key, subcon), StatusStrings.Error) %}
     // Unhandled @ {{ key }} / {{ subcon }}
             {%- endif %}
         {%- endif %}
@@ -57,8 +58,10 @@ void parse_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversio
             {%- elif generatorService.isStruct(key, _tree) %}
     parse_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }}, source + offset);
     offset += sizeof_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }});
+            {%- elif generatorService.isEnum(key, _tree) %}
+    {{ generatorService.instance(key, 'instance') }} = ({{ generatorService.cType(subcon) }})*({{ generatorService.cType(subcon.subcon.subcon) }} *)(source + offset);
+    offset += {{ generatorService.computableSize(subcon) }};
             {%- else %}
-                {%- set error = logService.log("Unhandled key {} with construct {}.".format(key, subcon), StatusStrings.Error) %}
     // Unhandled @ {{ key }} / {{ subcon }}
             {%- endif %}
         {%- endif %}
@@ -94,6 +97,9 @@ void serialize_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConve
             {%- elif generatorService.isStruct(key, _tree) %}
     serialize_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }}, target + offset);
     offset += sizeof_{{ generatorService.cType(subcon) }}({{ generatorService.instance(key, 'instance') }});
+            {%- elif generatorService.isEnum(key, _tree) %}
+    *({{ generatorService.cType(subcon.subcon.subcon) }} *)(source + offset) = ({{ generatorService.cType(subcon.subcon.subcon) }}){{ generatorService.instance(key, 'instance') }};
+    offset += {{ generatorService.computableSize(subcon) }};
             {%- else %}
     // Unhandled @ {{ key }} / {{ subcon }}
             {%- endif %}
@@ -109,27 +115,27 @@ void serialize_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConve
 #include "{{ info.baseName }}.h"
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY */
 
-{%- if info.needsMalloc %}
+{%- if not generatorService.hasComputableSize(info.subcon) %}
 #include <stdlib.h>
 {%- endif %}
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF
 // Sizeof-related implementations.
-{%- for _struct in info.structStack %}
+{%- for _struct in generatorService.structStack(info.subcon) %}
     {{ generate_sizeof( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER
 // Parser-related implementations.
-{%- for _struct in info.structStack %}
+{%- for _struct in generatorService.structStack(info.subcon) %}
     {{ generate_parser( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER
 // Serializer-related implementations.
-{%- for _struct in info.structStack %}
+{%- for _struct in generatorService.structStack(info.subcon) %}
     {{ generate_serializer( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER */
