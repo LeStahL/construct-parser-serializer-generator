@@ -5,15 +5,15 @@
  */
 
 {%- macro generate_sizeof_forward_declarations(tree, con) %}
-size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *);
+size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *);
 {%- endmacro %}
 
 {%- macro generate_parse_forward_declarations(tree, con) %}
-void parse_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
+void parse_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
 {%- endmacro %}
 
 {%- macro generate_serialize_forward_declarations(tree, con) %}
-void serialize_{{ caseConversionService.convertToSnake(con.name) }}({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
+void serialize_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
 {%- endmacro %}
 
 #ifndef {{ caseConversionService.convertToMacro(info.baseName) }}_H
