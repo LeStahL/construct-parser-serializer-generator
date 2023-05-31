@@ -30,7 +30,7 @@ typedef struct {
     {%- else %}
 typedef enum {
         {%- for key, value in renamed.subcon.encmapping.items() %}
-    INITIAL_VALUE_TYPE_{{ caseConversionService.convertToMacro(key) }} = {{ value }}{{ '' if loop.last else ',' }}
+    {{ caseConversionService.convertToMacro(renamed.name) }}_{{ caseConversionService.convertToMacro(key) }} = {{ value }}{{ '' if loop.last else ',' }}
         {%- endfor %}
     {%- endif %}
 } {{ caseConversionService.convertToSnake(renamed.name) }}_t;
