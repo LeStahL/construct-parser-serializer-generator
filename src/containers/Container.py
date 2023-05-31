@@ -23,4 +23,5 @@ class Container(DeclarativeContainer):
     generatorService = Singleton(GeneratorService,
         logService,
         caseConversionService,
+        commandLineService,
     )

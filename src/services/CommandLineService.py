@@ -10,5 +10,6 @@ class CommandLineService:
         argumentParser.add_argument('-m,--module', dest='module', help='Module to load construct for generation from.', default='BinaryFormat')
         argumentParser.add_argument('-f,--file', dest='file', help='Python file with module to load construct from.', default='BinaryFormat.py')
         argumentParser.add_argument('-v,--verbose', dest='verbose', action='store_true', help='Enable verbose output.', default=False)
+        argumentParser.add_argument('-p,--python-data-binding', dest='python', action='store_true', help='Export a Python module with data binding instead of the C parser.', default=False)
 
         self.args = argumentParser.parse_args()

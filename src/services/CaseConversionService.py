@@ -16,13 +16,13 @@ class CaseConversionService:
 
     def hasUppercase(self, identifier: str) -> bool:
         for character in identifier:
-            if character.upper() == character and not character.isnumeric():
+            if character.lower() != character:
                 return True
         return False
     
     def hasLowercase(self, identifier: str) -> bool:
         for character in identifier:
-            if character.lower() == character:
+            if character.upper() != character:
                 return True
         return False
 
@@ -32,18 +32,18 @@ class CaseConversionService:
         
         if '-' in identifier:
             if '_' in identifier or \
-                self.hasUppercase():
+                self.hasUppercase(identifier):
                 return Case.UNKNOWN_CASE
             
             return Case.KEBAB_CASE
         
         if '_' in identifier:
-            if self.hasLowercase() and \
-                not self.hasUppercase():
+            if self.hasLowercase(identifier) and \
+                not self.hasUppercase(identifier):
                 return Case.SNAKE_CASE
             
-            if self.hasUppercase() and \
-                not self.hasLowercase():
+            if self.hasUppercase(identifier) and \
+                not self.hasLowercase(identifier):
                 return Case.MACRO_CASE
             
             return Case.UNKNOWN_CASE
@@ -103,7 +103,7 @@ class CaseConversionService:
                 lambda part: part[0].upper() + part[1:],
                 parts,
             ))
-            pascal[0] = pascal[0].lower()
+            pascal = pascal[0].lower() + pascal[1:]
             return pascal
 
     def convertTo(self, identifier: str, toCase: Case) -> str:
@@ -114,3 +114,9 @@ class CaseConversionService:
     
     def convertToMacro(self, identifier) -> str:
         return self.convertTo(identifier, Case.MACRO_CASE)
+
+    def convertToCamel(self, identifier) -> str:
+        return self.convertTo(identifier, Case.CAMEL_CASE)
+
+    def convertToPascal(self, identifier) -> str:
+        return self.convertTo(identifier, Case.PASCAL_CASE)

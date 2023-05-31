@@ -8,22 +8,26 @@ from json import dumps
 
 from services.LogService import LogService, StatusStrings
 from services.CaseConversionService import CaseConversionService, Case
+from services.CommandLineService import CommandLineService
 
 @inject
 class GeneratorService:
     HeaderTemplate = 'Parser.h'
     SourceTemplate = 'Parser.c'
+    PythonTemplate = 'Parser.py'
 
     UniqueIdentifierIndex = 0
 
     def __init__(self,
         logService: LogService,
         caseConversionService: CaseConversionService,
+        commandLineService: CommandLineService,
     ) -> None:
         super().__init__()
 
         self.logService = logService
         self.caseConversionService = caseConversionService
+        self.commandLineService = commandLineService
 
         self.environment = Environment(
             loader=FileSystemLoader(join(dirname(__file__), '..', 'templates')),
@@ -31,6 +35,7 @@ class GeneratorService:
         )
         self.sourceTemplate = self.environment.get_template(GeneratorService.SourceTemplate)
         self.headerTemplate = self.environment.get_template(GeneratorService.HeaderTemplate)
+        self.pythonTemplate = self.environment.get_template(GeneratorService.PythonTemplate)
 
     def printSubconstruct(self, subcon: Subconstruct, depth=0):
         print(' ' * depth + '{}, {}'.format(subcon, type(subcon)))
@@ -54,6 +59,20 @@ class GeneratorService:
         
         return stack
     
+    def enumStack(self, subcon: Subconstruct, stack: Iterable = None):
+        if stack is None:
+            stack = []
+        if type(subcon) is Renamed and type(subcon.subcon) in [Enum]:
+            stack = [subcon] + stack
+
+        if 'subcon' in dir(subcon):
+            stack = self.enumStack(subcon.subcon, stack)
+        if 'subcons' in dir(subcon):
+            for subsubcon in subcon.subcons:
+                stack = self.enumStack(subsubcon, stack)
+
+        return stack
+
     def structEnumStack(self, subcon: Subconstruct, stack: Iterable = None):
         if stack is None:
             stack = []
@@ -89,12 +108,49 @@ class GeneratorService:
             return 'char *'
         elif type(subcon) is Array:
             return self.cType(subcon.subcon) + ' *'
-        
+
         if 'subcon' in dir(subcon):
             return self.cType(subcon.subcon)
-        
+
         return "void *"
 
+    def pythonType(self, subcon: Subconstruct) -> str:
+        name = ""
+        if type(subcon) is Renamed:
+            name = subcon.name
+            subcon = subcon.subcon
+
+        if type(subcon) in [Struct, Enum]:
+            return self.caseConversionService.convertToPascal(name)
+        elif type(subcon) is FormatField:
+            return 'int'
+        elif type(subcon) in [StringEncoded, Bytes]:
+            return 'str'
+        elif type(subcon) is Array:
+            return 'Iterable[' + self.pythonType(subcon.subcon) + ']'
+
+        if 'subcon' in dir(subcon):
+            return self.pythonType(subcon.subcon)
+
+        return "Any"
+
+    def schemaType(self, subcon: Subconstruct) -> str:
+        name = ""
+        if type(subcon) is Renamed:
+            name = subcon.name
+            subcon = subcon.subcon
+
+        if type(subcon) in [Struct, Enum]:
+            return self.caseConversionService.convertToPascal(name)
+        elif type(subcon) is FormatField:
+            return 'integer'
+        elif type(subcon) in [StringEncoded, Bytes]:
+            return 'string'
+
+        if 'subcon' in dir(subcon):
+            return self.schemaType(subcon.subcon)
+
+        return "null"
 
     def hasComputableSize(self, subcon: Subconstruct) -> bool:
         if type(subcon) in [
@@ -234,6 +290,9 @@ class GeneratorService:
         key = endList[0]
         return { key: tree[key] }
     
+    def joinEnumNames(self, subcon: Subconstruct) -> str:
+        return ', '.join(map(lambda _enum: _enum.name, self.enumStack(subcon)))
+
     def referencedSize(self, tree: dict, key: str) -> int:
         if type(tree[key]) is Array:
             return list(self.this(tree, tree[key].count._Path__field).keys())[0]    
@@ -252,28 +311,41 @@ class GeneratorService:
         class Info:
             def __init__(innerSelf) -> None:
                 innerSelf.baseName = outputBaseName
+                innerSelf.constructIdentifier = self.commandLineService.args.id
                 innerSelf.now = datetime.now()
                 innerSelf.tree = tree
                 innerSelf.subcon = subcon
 
-        # Save source file
-        with open(join(outputDir, '{}.c'.format(outputBaseName)), 'wt') as f:
-            f.write(self.sourceTemplate.render(
-                info=Info(),
-                generatorService=self,
-                logService=self.logService,
-                caseConversionService=self.caseConversionService,
-            ))
-            f.close()
-        self.logService.log('Generated source file.', StatusStrings.Success)
+        if self.commandLineService.args.python:
+            # Save Python data bindings.
+            with open(join(outputDir, '{}.py'.format(outputBaseName)), 'wt') as f:
+                f.write(self.pythonTemplate.render(
+                    info=Info(),
+                    generatorService=self,
+                    logService=self.logService,
+                    caseConversionService=self.caseConversionService,
+                ))
+                f.close()
+            self.logService.log('Generated Python data binding module file.', StatusStrings.Success)
+        else:
+            # Save source file
+            with open(join(outputDir, '{}.c'.format(outputBaseName)), 'wt') as f:
+                f.write(self.sourceTemplate.render(
+                    info=Info(),
+                    generatorService=self,
+                    logService=self.logService,
+                    caseConversionService=self.caseConversionService,
+                ))
+                f.close()
+            self.logService.log('Generated source file.', StatusStrings.Success)
 
-        # Save header file
-        with open(join(outputDir, '{}.h'.format(outputBaseName)), 'wt') as f:
-            f.write(self.headerTemplate.render(
-                info=Info(),
-                generatorService=self,
-                logService=self.logService,
-                caseConversionService=self.caseConversionService,
-            ))
-            f.close()
-        self.logService.log('Generated header file.', StatusStrings.Success)
+            # Save header file
+            with open(join(outputDir, '{}.h'.format(outputBaseName)), 'wt') as f:
+                f.write(self.headerTemplate.render(
+                    info=Info(),
+                    generatorService=self,
+                    logService=self.logService,
+                    caseConversionService=self.caseConversionService,
+                ))
+                f.close()
+            self.logService.log('Generated header file.', StatusStrings.Success)
