@@ -48,7 +48,11 @@ class GeneratorService:
     def structStack(self, subcon: Subconstruct, stack: Iterable = None):
         if stack is None:
             stack = []
-        if type(subcon) is Renamed and type(subcon.subcon) in [Struct]:
+        if type(subcon) is Renamed and \
+            type(subcon.subcon) in [Struct]:
+            for knownSucon in stack:
+                if knownSucon.name == subcon.name:
+                    stack.remove(knownSucon)
             stack = [subcon] + stack
 
         if 'subcon' in dir(subcon):
@@ -62,7 +66,11 @@ class GeneratorService:
     def enumStack(self, subcon: Subconstruct, stack: Iterable = None):
         if stack is None:
             stack = []
-        if type(subcon) is Renamed and type(subcon.subcon) in [Enum]:
+        if type(subcon) is Renamed and \
+            type(subcon.subcon) in [Enum]:
+            for knownSucon in stack:
+                if knownSucon.name == subcon.name:
+                    stack.remove(knownSucon)
             stack = [subcon] + stack
 
         if 'subcon' in dir(subcon):
@@ -76,7 +84,11 @@ class GeneratorService:
     def structEnumStack(self, subcon: Subconstruct, stack: Iterable = None):
         if stack is None:
             stack = []
-        if type(subcon) is Renamed and type(subcon.subcon) in [Struct, Enum]:
+        if type(subcon) is Renamed and \
+            type(subcon.subcon) in [Struct, Enum]:
+            for knownSucon in stack:
+                if knownSucon.name == subcon.name:
+                    stack.remove(knownSucon)
             stack = [subcon] + stack
 
         if 'subcon' in dir(subcon):
