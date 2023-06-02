@@ -34,7 +34,7 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
         {%- if generatorService.isStruct(key, _tree) %}
-        instance.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToPascal(subcon.name) }}(container['{{ caseConversionService.convertToPascal(subcon.name) }}'])
+        instance.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToPascal(subcon.name) }}.parseFromContainer(container['{{ caseConversionService.convertToPascal(subcon.name) }}'])
         {%- elif generatorService.isArray(key, _tree) %}
         instance.{{ caseConversionService.convertToCamel(name) }} = list(map(
             lambda child: {{ subcon.subcon.name }}.parseFromContainer(child),
