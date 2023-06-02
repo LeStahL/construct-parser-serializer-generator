@@ -5,7 +5,10 @@
 from construct import *
 from typing import Any, Iterable
 from enum import IntEnum
-from .{{ info.module }} import {{ info.constructIdentifier }}, {{ generatorService.joinEnumNames(info.subcon) }}
+from .{{ info.module }} import {{ info.constructIdentifier }}
+{%- if generatorService.joinEnumNames(info.subcon) != '' %}
+from .{{ info.module }} import {{ generatorService.joinEnumNames(info.subcon) }}
+{%- endif %}
 
 {%- macro generate_binding(_tree, con) %}
 class {{ caseConversionService.convertToPascal(con.name) }}:
@@ -13,7 +16,7 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
     {%- for key in _tree %}
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
-        {{ caseConversionService.convertToCamel(name) }}: {{ generatorService.pythonType(subcon) }},
+        {{ caseConversionService.convertToCamel(name) }}: {{ generatorService.pythonType(subcon) }} = {{ generatorService.pythonDefaultValue(subcon) }},
     {%- endfor %}
     ) -> None:
         self._container = None
@@ -23,22 +26,25 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}
     {%- endfor %}
     
-    def parseFromContainer(self, container: Container) -> None:
-        self._container = container
+    @staticmethod
+    def parseFromContainer(container: Container) -> Any:
+        instance = {{ caseConversionService.convertToPascal(con.name) }}()
+        instance._container = container
     {%- for key in _tree %}
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
         {%- if generatorService.isStruct(key, _tree) %}
-        self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToPascal(subcon.name) }}(container['{{ caseConversionService.convertToPascal(subcon.name) }}'])
+        instance.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToPascal(subcon.name) }}(container['{{ caseConversionService.convertToPascal(subcon.name) }}'])
         {%- elif generatorService.isArray(key, _tree) %}
-        self.{{ caseConversionService.convertToCamel(name) }} = list(map(
-            lambda child: {{ subcon.subcon.name }}(child),
+        instance.{{ caseConversionService.convertToCamel(name) }} = list(map(
+            lambda child: {{ subcon.subcon.name }}.parseFromContainer(child),
             container['{{ caseConversionService.convertToPascal(name) }}'],
         ))
         {%- else %}
-        self.{{ caseConversionService.convertToCamel(name) }} = container['{{ caseConversionService.convertToPascal(name) }}']
+        instance.{{ caseConversionService.convertToCamel(name) }} = container['{{ caseConversionService.convertToPascal(name) }}']
         {%- endif %}
     {%- endfor %}
+        return instance
 
     def serializeToDict(self) -> dict:
         return {
@@ -51,7 +57,7 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
             '{{ caseConversionService.convertToPascal(name) }}': list(map(
                 lambda child: child.serializeToDict(),
                 self.{{ caseConversionService.convertToCamel(name) }},
-            ))
+            )),
         {%- else %}
             '{{ caseConversionService.convertToPascal(name) }}': self.{{ caseConversionService.convertToCamel(name) }},
         {%- endif %}

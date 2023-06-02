@@ -5,6 +5,7 @@ from os.path import join, dirname
 from datetime import datetime
 from typing import Iterable
 from json import dumps
+from typing import Any
 
 from services.LogService import LogService, StatusStrings
 from services.CaseConversionService import CaseConversionService, Case
@@ -147,6 +148,26 @@ class GeneratorService:
             return self.pythonType(subcon.subcon)
 
         return "Any"
+    
+    def pythonDefaultValue(self, subcon: Subconstruct) -> Any:
+        name = ""
+        if type(subcon) is Renamed:
+            name = subcon.name
+            subcon = subcon.subcon
+
+        if type(subcon) is Struct:
+            return self.caseConversionService.convertToPascal(name) + '()'
+        elif type(subcon) in [Enum, FormatField]:
+            return '0'
+        elif type(subcon) in [StringEncoded, Bytes]:
+            return "''"
+        elif type(subcon) is Array:
+            return '[]'
+        
+        if 'subcon' in dir(subcon):
+            return self.pythonType(subcon.subcon)
+        
+        return 'None'
 
     def schemaType(self, subcon: Subconstruct) -> str:
         name = ""
