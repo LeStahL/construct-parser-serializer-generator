@@ -34,27 +34,41 @@ void parse_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConvers
     {%- for key in _tree %}
         {%- set subcon = _tree[key] %}
     // {{ key }} with type {{ generatorService.cType(subcon) }}:
+#ifdef DEBUG
+    printf("Parsing %s (type %s) at offset %d.\n", "{{ key }}", "{{ generatorService.cType(subcon) }}", (int32_t)offset);
+#endif // DEBUG
         {%- if generatorService.hasComputableSize(subcon) %}
     {{ generatorService.instance(key, 'instance') }} = *({{ generatorService.cType(subcon) }} *)(source + offset);
     offset += {{ generatorService.computableSize(subcon) }};
+#ifdef DEBUG
+    printf("Parsed computable: %d\n", (int32_t){{ generatorService.instance(key, 'instance') }});
+#endif // DEBUG
         {%- else %}
             {%- if generatorService.isString(key, _tree) %}
-    {{ generatorService.instance(key, 'instance') }} = (char *) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
+    {{ generatorService.instance(key, 'instance') }} = (char *) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }} + 1);
     memcpy({{ generatorService.instance(key, 'instance') }}, source + offset, {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
+    {{ generatorService.instance(key, 'instance') }}[{{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}] = 0;
     offset += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
+#ifdef DEBUG
+    printf("Parsed string: %s\n", {{ generatorService.instance(key, 'instance') }});
+#endif // DEBUG
             {%- elif generatorService.isArray(key, _tree) %}
                 {%- set index = generatorService.uniqueIdentifier() %}
-                {%- set element_size_id = generatorService.uniqueIdentifier() %}
-    size_t {{ element_size_id }} = sizeof_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }});
+#ifdef DEBUG
+    printf("Parsing array of size %d.\n", {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
+#endif // DEBUG
     {{ generatorService.instance(key, 'instance') }} = ({{ generatorService.cType(subcon) }}) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }} * sizeof({{ generatorService.cType(subcon.subcon) }}));
+#ifdef DEBUG
+    printf("Allocated array.\n");
+#endif // DEBUG
                 {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
     for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
-        parse_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }}, source + offset + {{ index }} * {{ element_size_id }});
+        parse_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }}, source + offset);
+        offset += sizeof_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }});
     }
                 {%- else %}
     memcpy({{ generatorService.instance(key, 'instance') }}, source + offset, {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
                 {% endif %}
-    offset += {{ element_size_id }} * {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
             {%- elif generatorService.isStruct(key, _tree) %}
     parse_{{ generatorService.cType(subcon) }}(&{{ generatorService.instance(key, 'instance') }}, source + offset);
     offset += sizeof_{{ generatorService.cType(subcon) }}(&{{ generatorService.instance(key, 'instance') }});
@@ -117,6 +131,9 @@ void serialize_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseCon
 
 {%- if not generatorService.hasComputableSize(info.subcon) %}
 #include <stdlib.h>
+#ifdef DEBUG
+#include <stdio.h>
+#endif // DEBUG
 {%- endif %}
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF

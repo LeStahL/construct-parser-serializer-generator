@@ -5,7 +5,7 @@
 from construct import *
 from typing import Any, Iterable
 from enum import IntEnum
-from {{ info.baseName }} import {{ info.constructIdentifier }}, {{ generatorService.joinEnumNames(info.subcon) }}
+from .{{ info.module }} import {{ info.constructIdentifier }}, {{ generatorService.joinEnumNames(info.subcon) }}
 
 {%- macro generate_binding(_tree, con) %}
 class {{ caseConversionService.convertToPascal(con.name) }}:

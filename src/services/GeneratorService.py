@@ -132,8 +132,10 @@ class GeneratorService:
             name = subcon.name
             subcon = subcon.subcon
 
-        if type(subcon) in [Struct, Enum]:
+        if type(subcon) is Struct:
             return self.caseConversionService.convertToPascal(name)
+        elif type(subcon) is Enum:
+            return self.caseConversionService.convertToPascal(subcon.subcon.name)
         elif type(subcon) is FormatField:
             return 'int'
         elif type(subcon) in [StringEncoded, Bytes]:
@@ -303,7 +305,7 @@ class GeneratorService:
         return { key: tree[key] }
     
     def joinEnumNames(self, subcon: Subconstruct) -> str:
-        return ', '.join(map(lambda _enum: _enum.name, self.enumStack(subcon)))
+        return ', \\\n    '.join(map(lambda _enum: _enum.subcon.subcon.name, self.enumStack(subcon)))
 
     def referencedSize(self, tree: dict, key: str) -> int:
         if type(tree[key]) is Array:
@@ -323,6 +325,7 @@ class GeneratorService:
         class Info:
             def __init__(innerSelf) -> None:
                 innerSelf.baseName = outputBaseName
+                innerSelf.module = self.commandLineService.args.module
                 innerSelf.constructIdentifier = self.commandLineService.args.id
                 innerSelf.now = datetime.now()
                 innerSelf.tree = tree
