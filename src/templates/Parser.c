@@ -13,7 +13,17 @@ size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConv
         {%- if generatorService.hasComputableSize(subcon) %}
     result += {{ generatorService.computableSize(subcon) }};
         {%- else %}
-            {%- if generatorService.isArrayLike(key, _tree) %}
+            {%- if generatorService.isArray(key, _tree) %}
+    // Handling array.
+                {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
+    {%- set index = generatorService.uniqueIdentifier() %}
+    for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
+        result += sizeof_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }});
+    }
+                {%- else %}
+    result += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
+                {%- endif %}
+            {%- elif generatorService.isString(key, _tree) %}
     result += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
             {%- elif generatorService.isStruct(key, _tree) %}
     result += sizeof_{{ generatorService.cType(subcon) }}(&{{ generatorService.instance(key, 'instance') }});
@@ -67,7 +77,9 @@ void parse_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConvers
         offset += sizeof_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }});
     }
                 {%- else %}
+    {{ generatorService.instance(key, 'instance') }} = (char *) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
     memcpy({{ generatorService.instance(key, 'instance') }}, source + offset, {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
+    offset += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
                 {% endif %}
             {%- elif generatorService.isStruct(key, _tree) %}
     parse_{{ generatorService.cType(subcon) }}(&{{ generatorService.instance(key, 'instance') }}, source + offset);
@@ -75,6 +87,9 @@ void parse_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConvers
             {%- elif generatorService.isEnum(key, _tree) %}
     {{ generatorService.instance(key, 'instance') }} = ({{ generatorService.cType(subcon) }})*({{ generatorService.cType(subcon.subcon.subcon) }} *)(source + offset);
     offset += {{ generatorService.computableSize(subcon) }};
+#ifdef DEBUG
+    printf("Parsed enum of type %s: %d\n", "{{ generatorService.cType(subcon) }}", {{ generatorService.instance(key, 'instance') }});
+#endif // DEBUG
             {%- else %}
     // Unhandled @ {{ key }} / {{ subcon }}
             {%- endif %}
@@ -102,6 +117,7 @@ void serialize_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseCon
     size_t {{ element_size_id }} = sizeof_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }});
                 {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
     for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
+        // TODO: This is a bug and should be fixed.
         serialize_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }}, target + offset + {{ index }} * {{ element_size_id }});
     }
                 {%- else %}
