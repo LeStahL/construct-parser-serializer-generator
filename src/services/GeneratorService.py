@@ -162,7 +162,7 @@ class GeneratorService:
         elif type(subcon) in [StringEncoded, Bytes]:
             return "''"
         elif type(subcon) is Array:
-            return '[]'
+            return 'None'
         
         if 'subcon' in dir(subcon):
             return self.pythonType(subcon.subcon)

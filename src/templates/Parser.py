@@ -16,14 +16,24 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
     {%- for key in _tree %}
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
+        {%- if generatorService.isEnum(key, _tree) %}
+        {{ caseConversionService.convertToCamel(name) }}: {{ generatorService.pythonType(subcon) }} = {{ generatorService.pythonType(subcon) }}({{ generatorService.pythonDefaultValue(subcon) }}),
+        {%- else %}
         {{ caseConversionService.convertToCamel(name) }}: {{ generatorService.pythonType(subcon) }} = {{ generatorService.pythonDefaultValue(subcon) }},
+        {%- endif %}
     {%- endfor %}
     ) -> None:
         self._container = None
     {%- for key in _tree %}
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
+        {%- if generatorService.isEnum(key, _tree) %}
+        self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}.value
+        {%- elif generatorService.isArray(key, _tree) %}
+        self.{{ caseConversionService.convertToCamel(name) }} = [] if {{ caseConversionService.convertToCamel(name) }} is None else {{ caseConversionService.convertToCamel(name) }}
+        {%- else %}
         self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}
+        {%- endif %}
     {%- endfor %}
     
     @staticmethod
