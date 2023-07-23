@@ -5,7 +5,7 @@ from datetime import datetime
 from traceback import print_exc
 from sys import exit, exc_info
 
-from services.CommandLineService import CommandLineService
+from construct_psg.services.CommandLineService import CommandLineService
 
 class StatusStrings(Enum):
     Error = 'red'

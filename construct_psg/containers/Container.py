@@ -2,11 +2,11 @@ from dependency_injector.wiring import Provide, inject
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Singleton, Configuration, Factory
 
-from services.CommandLineService import CommandLineService
-from services.LogService import LogService
-from services.GeneratorService import GeneratorService
-from services.ModuleLoaderService import ModuleLoaderService
-from services.CaseConversionService import CaseConversionService
+from construct_psg.services.CommandLineService import CommandLineService
+from construct_psg.services.LogService import LogService
+from construct_psg.services.GeneratorService import GeneratorService
+from construct_psg.services.ModuleLoaderService import ModuleLoaderService
+from construct_psg.services.CaseConversionService import CaseConversionService
 
 class Container(DeclarativeContainer):
     commandLineService = Singleton(CommandLineService)

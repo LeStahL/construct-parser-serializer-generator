@@ -7,9 +7,9 @@ from typing import Iterable
 from json import dumps
 from typing import Any
 
-from services.LogService import LogService, StatusStrings
-from services.CaseConversionService import CaseConversionService, Case
-from services.CommandLineService import CommandLineService
+from construct_psg.services.LogService import LogService, StatusStrings
+from construct_psg.services.CaseConversionService import CaseConversionService, Case
+from construct_psg.services.CommandLineService import CommandLineService
 
 @inject
 class GeneratorService:

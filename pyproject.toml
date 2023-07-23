@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "construct-psg"
+version = "0.1.0"
+description = "Symmetric parser generator for Python constructs in C, GLSL and Python"
+authors = ["Alexander Kraus <nr4@z10.info>"]
+license = "GPLv3"
+readme = "README.md"
+packages = [{include = "construct_psg"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+dependency-injector = "^4.41.0"
+argparse = "^1.4.0"
+Jinja2 = "^3.1.2"
+termcolor = "^2.3.0"
+importlib = "^1.0.4"
+construct = "^2.10.68"
+
+
+[tool.poetry.group.dev.dependencies]
+pygit2 = "^1.12.2"
+pyinstaller = "^5.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

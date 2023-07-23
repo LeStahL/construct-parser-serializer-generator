@@ -5,7 +5,7 @@ from types import ModuleType
 from construct import Subconstruct
 from os.path import exists
 
-from services.LogService import LogService, StatusStrings
+from construct_psg.services.LogService import LogService, StatusStrings
 
 @inject
 class ModuleLoaderService:

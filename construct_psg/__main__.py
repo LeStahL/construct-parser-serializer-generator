@@ -1,10 +1,10 @@
 from dependency_injector.wiring import Provide, inject
 
-from containers.Container import Container
+from construct_psg.containers.Container import Container
 
-from services.CommandLineService import CommandLineService
-from services.ModuleLoaderService import ModuleLoaderService
-from services.GeneratorService import GeneratorService
+from construct_psg.services.CommandLineService import CommandLineService
+from construct_psg.services.ModuleLoaderService import ModuleLoaderService
+from construct_psg.services.GeneratorService import GeneratorService
 
 @inject
 def main(
