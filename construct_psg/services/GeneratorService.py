@@ -16,6 +16,7 @@ class GeneratorService:
     HeaderTemplate = 'Parser.h'
     SourceTemplate = 'Parser.c'
     PythonTemplate = 'Parser.py'
+    ShaderTemplate = 'Parser.frag'
 
     UniqueIdentifierIndex = 0
 
@@ -37,6 +38,7 @@ class GeneratorService:
         self.sourceTemplate = self.environment.get_template(GeneratorService.SourceTemplate)
         self.headerTemplate = self.environment.get_template(GeneratorService.HeaderTemplate)
         self.pythonTemplate = self.environment.get_template(GeneratorService.PythonTemplate)
+        self.shaderTemplate = self.environment.get_template(GeneratorService.ShaderTemplate)
 
     def printSubconstruct(self, subcon: Subconstruct, depth=0):
         print(' ' * depth + '{}, {}'.format(subcon, type(subcon)))
@@ -124,6 +126,30 @@ class GeneratorService:
 
         if 'subcon' in dir(subcon):
             return self.cType(subcon.subcon)
+
+        return "void *"
+    
+    def glslType(self, subcon: Subconstruct) -> str:
+        name = ""
+        if type(subcon) is Renamed:
+            name = subcon.name
+            subcon = subcon.subcon
+
+        if type(subcon) is Struct:
+            return self.caseConversionService.convertToSnake(name) + '_t'
+        elif type(subcon) is Enum:
+            return 'int'
+        elif type(subcon) is FormatField:
+            if subcon.fmtstr[0] == '=':
+                prefix = 'u' if subcon.fmtstr[1].isupper() else ''
+                return prefix + 'int'
+        elif type(subcon) in [StringEncoded, Bytes]:
+            return 'int[MAX_ARRAY_SIZE]'
+        elif type(subcon) is Array:
+            return self.glslType(subcon.subcon) + '[MAX_ARRAY_SIZE]'
+
+        if 'subcon' in dir(subcon):
+            return self.glslType(subcon.subcon)
 
         return "void *"
 
@@ -363,6 +389,17 @@ class GeneratorService:
                 ))
                 f.close()
             self.logService.log('Generated Python data binding module file.', StatusStrings.Success)
+        elif self.commandLineService.args.shader:
+            # Save shader file.
+            with open(join(outputDir, '{}.frag'.format(outputBaseName)), 'wt') as f:
+                f.write(self.shaderTemplate.render(
+                    info=Info(),
+                    generatorService=self,
+                    logService=self.logService,
+                    caseConversionService=self.caseConversionService,
+                ))
+                f.close()
+            self.logService.log('Generated shader file.', StatusStrings.Success)
         else:
             # Save source file
             with open(join(outputDir, '{}.c'.format(outputBaseName)), 'wt') as f:

@@ -4,6 +4,8 @@
  * Note: If you plan to edit this file, please reconsider your plan.
  */
 
+const int MAX_ARRAY_SIZE = 32;
+
 {%- macro generate_array(_tree, con) %}
 int {{ info.dataName }}[{{ info.dataSize }}] = int[{{ info.dataSize }}](
     {{ info.dataLines }}
@@ -18,14 +20,14 @@ void parse()
 
 {%- endmacro %}
 
-// Structures
+// Structures and enumerations
 {%- for renamed in generatorService.structEnumStack(info.subcon) %}
     {% if generatorService._isStruct(renamed.subcon) %}
-struct {
+struct {{ caseConversionService.convertToSnake(renamed.name) }}_t {
         {%- for subcon in renamed.subcons %}
-    {{ generatorService.cType(subcon) }} {{ caseConversionService.convertToSnake(subcon.name) }};
+    {{ generatorService.glslType(subcon) }} {{ caseConversionService.convertToSnake(subcon.name) }};
         {%- endfor %}
-} {{ caseConversionService.convertToSnake(renamed.name) }}_t;
+};
     {%- else %}
 const int
         {%- for key, value in renamed.subcon.encmapping.items() %}
@@ -34,6 +36,8 @@ const int
 ;
     {%- endif %}
 {%- endfor %}
+
+
 
 {%- if info.arrayParser %}
     // Array parser
