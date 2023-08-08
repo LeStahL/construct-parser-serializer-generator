@@ -8,10 +8,12 @@ from construct_psg.services.GeneratorService import GeneratorService
 
 @inject
 def main(
+    args,
     moduleLoaderService: ModuleLoaderService = Provide[Container.moduleLoaderService],
     commandLineService: CommandLineService = Provide[Container.commandLineService],
     generatorService: GeneratorService = Provide[Container.generatorService],
 ):
+    commandLineService.parse(args)
     generatorService.generate(
         moduleLoaderService.construct(
             moduleLoaderService.loadModule(
@@ -24,9 +26,12 @@ def main(
         commandLineService.args.name,
     )
 
-if __name__ == '__main__':
+def generate(args=None):
     container = Container()
     container.init_resources()
     container.wire(modules=[__name__])
 
-    main()
+    main(args)
+
+if __name__ == '__main__':
+    generate()
