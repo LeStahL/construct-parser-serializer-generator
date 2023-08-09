@@ -20,6 +20,9 @@ void serialize_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseCon
 #define {{ caseConversionService.convertToMacro(info.baseName) }}_H
 
 #include <stdint.h>
+#ifdef __linux__
+#include <stddef.h>
+#endif // __linux__
 
 {%- for renamed in generatorService.structEnumStack(info.subcon) %}
     {% if generatorService._isStruct(renamed.subcon) %}
