@@ -4,6 +4,9 @@
  * Note: If you plan to edit this file, please reconsider your plan.
  */
 
+#include <stdlib.h>
+#include <string.h>
+
 {%- macro generate_sizeof(_tree, con) %}
 size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *instance) {
     size_t result = 0;
