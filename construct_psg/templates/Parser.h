@@ -4,20 +4,23 @@
  * Note: If you plan to edit this file, please reconsider your plan.
  */
 
-{%- macro generate_sizeof_forward_declarations(tree, con) %}
+{%- macro generate_sizeof_forward_declarations(con) %}
 size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *);
 {%- endmacro %}
 
-{%- macro generate_parse_forward_declarations(tree, con) %}
+{%- macro generate_parse_forward_declarations(con) %}
 void parse_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
 {%- endmacro %}
 
-{%- macro generate_serialize_forward_declarations(tree, con) %}
+{%- macro generate_serialize_forward_declarations(con) %}
 void serialize_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *, uint8_t *);
 {%- endmacro %}
 
-#ifndef {{ caseConversionService.convertToMacro(info.baseName) }}_H
-#define {{ caseConversionService.convertToMacro(info.baseName) }}_H
+{%- macro generate_free_forward_declarations(con) %}
+void free_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *);
+{%- endmacro %}
+
+#pragma once
 
 #include <stdint.h>
 #ifdef __linux__
@@ -42,26 +45,31 @@ typedef enum {
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF
 // Sizeof-related forward declarations.
 {%- for _struct in generatorService.structStack(info.subcon) %}
-    {{- generate_sizeof_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
+    {{- generate_sizeof_forward_declarations(_struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SIZEOF */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER
 // Parser-related forward declarations.
 {%- for _struct in generatorService.structStack(info.subcon) %}
-    {{- generate_parse_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
+    {{- generate_parse_forward_declarations(_struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_PARSER */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER
 // Serializer-related forward declarations.
 {%- for _struct in generatorService.structStack(info.subcon) %}
-    {{- generate_serialize_forward_declarations( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
+    {{- generate_serialize_forward_declarations(_struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER */
+
+#ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_DESTRUCTOR
+// Destructor-related forward declarations
+{%- for _struct in generatorService.structStack(info.subcon) %}
+    {{- generate_free_forward_declarations(_struct) }}
+{%- endfor %}
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_DESTRUCTOR */
 
 #ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY
 #include "{{ info.baseName }}.c"
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_HEADER_ONLY */
-
-#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_H */

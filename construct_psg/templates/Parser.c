@@ -7,6 +7,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+{%- macro generate_destructor(_tree, con) %}
+    {%- if generatorService.hasArrayInSubtree(con) %}
+void free_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *instance) {
+        {%- for key in _tree %}
+            {%- set subcon = _tree[key] %}
+            {%- if generatorService.isArray(key, _tree) %}
+                {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
+                    {%- set index = generatorService.uniqueIdentifier() %}
+    for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
+        free_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }}[{{ index }}]);
+    }
+                {%- endif %}
+    free({{ generatorService.instance(key, 'instance') }});
+            {%- elif generatorService.isString(key, _tree) %}
+    free({{ generatorService.instance(key, 'instance') }});
+            {%- endif %}
+        {%- endfor %}
+}
+    {% endif %}
+{%- endmacro %}
+
 {%- macro generate_sizeof(_tree, con) %}
 size_t sizeof_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversionService.convertToSnake(con.name) }}_t *instance) {
     size_t result = 0;
@@ -175,5 +196,12 @@ void serialize_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseCon
     {{ generate_serializer( generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
 {%- endfor %}
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_SERIALIZER */
+
+#ifdef {{ caseConversionService.convertToMacro(info.baseName) }}_DESTRUCTOR
+// Destructor-related forward declarations
+{%- for _struct in generatorService.structStack(info.subcon) %}
+    {{- generate_destructor(generatorService.subtree(caseConversionService.convertToSnake(_struct.name), generatorService.tree(_struct)), _struct) }}
+{%- endfor %}
+#endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_DESTRUCTOR */
 
 #endif /* {{ caseConversionService.convertToMacro(info.baseName) }}_C */

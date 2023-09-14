@@ -213,6 +213,23 @@ class GeneratorService:
 
         return "null"
 
+    def hasArrayInSubtree(self, subcon: Subconstruct) -> bool:
+        if type(subcon) in [
+            Array,
+            StringEncoded,
+        ]:
+            return True
+        
+        if 'subcon' in dir(subcon):
+            return self.hasArrayInSubtree(subcon.subcon)
+        elif 'subcons' in dir(subcon):
+            result = False
+            for subsubcon in subcon.subcons:
+                result = result or self.hasArrayInSubtree(subsubcon)
+            return result
+        
+        return False
+
     def hasComputableSize(self, subcon: Subconstruct) -> bool:
         if type(subcon) in [
             Array,
