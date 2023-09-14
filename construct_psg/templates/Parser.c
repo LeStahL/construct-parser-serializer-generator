@@ -16,7 +16,7 @@ void free_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversi
                 {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
                     {%- set index = generatorService.uniqueIdentifier() %}
     for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
-        free_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }}[{{ index }}]);
+        free_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t(&{{ generatorService.instance(key, 'instance') }}[{{ index }}]);
     }
                 {%- endif %}
     free({{ generatorService.instance(key, 'instance') }});
