@@ -15,9 +15,11 @@ void free_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversi
             {%- if generatorService.isArray(key, _tree) %}
                 {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
                     {%- set index = generatorService.uniqueIdentifier() %}
+                    {%- if generatorService.hasArrayInSubtree(subcon.subcon) %}
     for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
         free_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t(&{{ generatorService.instance(key, 'instance') }}[{{ index }}]);
     }
+                    {%- endif %}
                 {%- endif %}
     free({{ generatorService.instance(key, 'instance') }});
             {%- elif generatorService.isString(key, _tree) %}
