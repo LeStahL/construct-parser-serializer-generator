@@ -10,30 +10,30 @@ class InternalFormat(IntEnum):
     R32f = 0x5
     Rgb8 = 0x6
 
-exampleStructInstance = "exampleFormat" / Struct(
-    "data" / Int8un,
-    "subStruct" / Struct(
-        "otherData" / Int32un,
-        "moreData" / Int32sn,
+exampleStructInstance = "ExampleFormat" / Struct(
+    "Data" / Int8un,
+    "SubStruct" / Struct(
+        "OtherData" / Int32un,
+        "MoreData" / Int32sn,
     ),
-    "size" / Int32un,
-    "string" / StringEncoded(
-        Bytes(this.size),
+    "Size" / Int32un,
+    "String" / StringEncoded(
+        Bytes(this.Size),
         'ascii',
     ),
-    "arraySize" / Int32un,
-    "weNeedArraySupport" / Array(
-        this.arraySize,
+    "ArraySize" / Int32un,
+    "WeNeedArraySupport" / Array(
+        this.ArraySize,
         "ArrayContent" / Struct(
-            "structEntry" / Int8un,
-            "thisAString" / StringEncoded(
-                Bytes(this.structEntry),
+            "StructEntry" / Int8un,
+            "ThisAString" / StringEncoded(
+                Bytes(this.StructEntry),
                 'ascii',
             ),
-            "nestedArraySize" / Int8un,
-            "nestedArray" / Array(
-                this.nestedArraySize,
-                "nestedArrayFields" / Int8un,
+            "NestedArraySize" / Int8un,
+            "NestedArray" / Array(
+                this.NestedArraySize,
+                "NestedArray" / Int8un,
             ),
             'TextureInternalFormat' / Enum(
                 'InternalFormat' / Int8un,
@@ -42,3 +42,51 @@ exampleStructInstance = "exampleFormat" / Struct(
         ),
     ),
 )
+
+exampleConstructDict = {
+    "Data": 3,
+    "SubStruct": {
+        "OtherData": 12349,
+        "MoreData": -23,
+    },
+    "Size": 2,
+    "String": "hi",
+    "ArraySize": 1,
+    "WeNeedArraySupport": [
+        {
+            "StructEntry": 5,
+            "ThisAString": "test1",
+            "NestedArraySize": 2,
+            "NestedArray": [
+                1,
+                2,
+            ],
+            "TextureInternalFormat": InternalFormat.Rg32f,
+        },
+    ],
+}
+
+exampleJSONDict = {
+    "Data": 3,
+    "SubStruct": {
+        "OtherData": 12349,
+        "MoreData": -23,
+    },
+    "Size": 2,
+    "String": "hi",
+    "ArraySize": 1,
+    "WeNeedArraySupport": [
+        {
+            "StructEntry": 5,
+            "ThisAString": "test1",
+            "NestedArraySize": 2,
+            "NestedArray": [
+                1,
+                2,
+            ],
+            "TextureInternalFormat": 0x2,
+        },
+    ],
+}
+
+exampleConstructBinary = b'\x03=0\x00\x00\xe9\xff\xff\xff\x02\x00\x00\x00hi\x01\x00\x00\x00\x05test1\x02\x01\x02\x02'

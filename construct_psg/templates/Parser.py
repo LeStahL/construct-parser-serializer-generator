@@ -47,27 +47,39 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         instance.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToPascal(subcon.name) }}.parseFromContainer(container['{{ caseConversionService.convertToPascal(subcon.name) }}'])
         {%- elif generatorService.isArray(key, _tree) %}
         instance.{{ caseConversionService.convertToCamel(name) }} = list(map(
+            {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
             lambda child: {{ subcon.subcon.name }}.parseFromContainer(child),
+            {%- else %}
+            lambda child: child,
+            {%- endif %}
             container['{{ caseConversionService.convertToPascal(name) }}'],
         ))
+        {%- elif generatorService.isEnum(key, _tree) %}
+        instance.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToPascal(subcon.subcon.subcon.name) }}(int(container['{{ caseConversionService.convertToPascal(name) }}']))
         {%- else %}
         instance.{{ caseConversionService.convertToCamel(name) }} = container['{{ caseConversionService.convertToPascal(name) }}']
         {%- endif %}
     {%- endfor %}
         return instance
 
-    def serializeToDict(self) -> dict:
+    def serializeToDict(self, convertEnumValues: bool = False) -> dict:
         return {
     {%- for key in _tree %}
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
         {%- if generatorService.isStruct(key, _tree) %}
-            '{{ caseConversionService.convertToPascal(name) }}': self.{{ caseConversionService.convertToCamel(name) }}.serializeToDict(),
+            '{{ caseConversionService.convertToPascal(name) }}': self.{{ caseConversionService.convertToCamel(name) }}.serializeToDict(convertEnumValues),
         {%- elif generatorService.isArray(key, _tree) %}
             '{{ caseConversionService.convertToPascal(name) }}': list(map(
-                lambda child: child.serializeToDict(),
+            {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
+                lambda child: child.serializeToDict(convertEnumValues),
+            {%- else %}
+                lambda child: child,
+            {%- endif %}
                 self.{{ caseConversionService.convertToCamel(name) }},
             )),
+        {%- elif generatorService.isEnum(key, _tree) %}
+            '{{ caseConversionService.convertToPascal(name) }}': self.{{ caseConversionService.convertToCamel(name) }}.value if convertEnumValues else self.{{ caseConversionService.convertToCamel(name) }},
         {%- else %}
             '{{ caseConversionService.convertToPascal(name) }}': self.{{ caseConversionService.convertToCamel(name) }},
         {%- endif %}
@@ -94,7 +106,13 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         {%- elif generatorService.isArray(key, _tree) %}
             "{{ caseConversionService.convertToPascal(name) }}": {
                 "type": "array",
+            {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
                 "items": {{ generatorService.schemaType(subcon) }}.JSONSchema,
+            {%- else %}
+                "items": {
+                    "type": "{{ generatorService.schemaType(subcon.subcon) }}",
+                },
+            {%- endif %}
             },            
         {%- else %}
             "{{ caseConversionService.convertToPascal(name) }}": {
