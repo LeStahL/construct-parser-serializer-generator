@@ -5,6 +5,7 @@
 from construct import *
 from typing import Any, Iterable
 from enum import IntEnum
+from copy import deepcopy
 from .{{ info.module }} import {{ info.constructIdentifier }}
 {%- if generatorService.joinEnumNames(info.subcon) != '' %}
 from .{{ info.module }} import {{ generatorService.joinEnumNames(info.subcon) }}
@@ -85,6 +86,25 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         {%- endif %}
     {%- endfor %}
         }
+
+    def __deepcopy__(self, memo):
+        result = {{ caseConversionService.convertToPascal(con.name) }}(
+    {%- for key in _tree %}
+        {%- set subcon = _tree[key] %}
+        {%- set name = key.split('.')[-1] %}
+            {{ caseConversionService.convertToCamel(name) }} = deepcopy(self.{{ caseConversionService.convertToCamel(name) }}, memo),
+        {%- if generatorService.isStruct(key, _tree) %}
+        {%- elif generatorService.isArray(key, _tree) %}
+            {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
+            {%- else %}
+            {%- endif %}
+        {%- elif generatorService.isEnum(key, _tree) %}
+        {%- else %}
+        {%- endif %}
+    {%- endfor %}
+        )
+        memo[id(self)] = result
+        return result
 
     JSONSchema = {
         "type": "object",

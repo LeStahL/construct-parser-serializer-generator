@@ -71,5 +71,22 @@ class TestSimpleConstruct(TestCase):
         instance: ExampleFormat = ExampleFormat.parseFromContainer(exampleJSONDict)
         self._assertInstanceCorrectness(instance, exampleConstructDict)
 
+    def test_deep_copy_instance(self):
+        instance: ExampleFormat = ExampleFormat.parseFromContainer(exampleJSONDict)
+        other = deepcopy(instance)
+
+        other.data = 5
+        other.subStruct.otherData = 0
+        other.subStruct.moreData = 0
+        other.size = 3
+        other.string = "hi!"
+        other.weNeedArraySupport[0].structEntry = 3
+        other.weNeedArraySupport[0].thisAString = "tes"
+        other.weNeedArraySupport[0].nestedArraySize = 3
+        other.weNeedArraySupport[0].nestedArray += [5]
+        other.weNeedArraySupport[0].textureInternalFormat = InternalFormat.Rgb8
+
+        self._assertInstanceCorrectness(instance, exampleConstructDict)
+
 if __name__ == '__main__':
     main()
