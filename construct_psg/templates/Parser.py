@@ -29,7 +29,7 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
         {%- if generatorService.isEnum(key, _tree) %}
-        self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}.value
+        self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}
         {%- elif generatorService.isArray(key, _tree) %}
         self.{{ caseConversionService.convertToCamel(name) }} = [] if {{ caseConversionService.convertToCamel(name) }} is None else {{ caseConversionService.convertToCamel(name) }}
         {%- else %}
@@ -93,14 +93,6 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         {%- set subcon = _tree[key] %}
         {%- set name = key.split('.')[-1] %}
             {{ caseConversionService.convertToCamel(name) }} = deepcopy(self.{{ caseConversionService.convertToCamel(name) }}, memo),
-        {%- if generatorService.isStruct(key, _tree) %}
-        {%- elif generatorService.isArray(key, _tree) %}
-            {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
-            {%- else %}
-            {%- endif %}
-        {%- elif generatorService.isEnum(key, _tree) %}
-        {%- else %}
-        {%- endif %}
     {%- endfor %}
         )
         memo[id(self)] = result
