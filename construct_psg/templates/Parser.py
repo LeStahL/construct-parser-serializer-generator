@@ -3,7 +3,11 @@
 # Note: If you plan to edit this file, please reconsider your plan.
 
 from construct import *
-from typing import Any, Iterable
+from typing import (
+    Any,
+    Iterable,
+    Optional,
+)
 from enum import IntEnum
 from copy import deepcopy
 from .{{ info.module }} import {{ info.constructIdentifier }}

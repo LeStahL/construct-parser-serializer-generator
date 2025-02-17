@@ -179,7 +179,7 @@ class GeneratorService:
         elif type(subcon) in [StringEncoded, Bytes]:
             return 'str'
         elif type(subcon) is Array:
-            return 'Iterable[' + self.pythonType(subcon.subcon) + ']'
+            return 'Optional[list[' + self.pythonType(subcon.subcon) + ']]'
 
         if 'subcon' in dir(subcon):
             return self.pythonType(subcon.subcon)
