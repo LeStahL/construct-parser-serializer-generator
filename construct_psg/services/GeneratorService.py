@@ -163,8 +163,19 @@ class GeneratorService:
             return self.caseConversionService.convertToPascal(name)
         elif type(subcon) is Enum:
             return self.caseConversionService.convertToPascal(subcon.subcon.name)
-        elif type(subcon) is FormatField:
+        elif type(subcon) is FormatField and (
+            'b' in subcon.fmtstr.lower() or
+            'h' in subcon.fmtstr.lower() or
+            'l' in subcon.fmtstr.lower() or
+            'q' in subcon.fmtstr.lower()
+        ):
             return 'int'
+        elif type(subcon) is FormatField and (
+            'e' in subcon.fmtstr.lower() or
+            'f' in subcon.fmtstr.lower() or
+            'd' in subcon.fmtstr.lower()
+        ):
+            return 'float'
         elif type(subcon) in [StringEncoded, Bytes]:
             return 'str'
         elif type(subcon) is Array:
@@ -299,6 +310,21 @@ class GeneratorService:
     
     def isStruct(self, key: str, tree: dict) -> bool:
         return type(tree[key]) is Renamed and type(tree[key].subcon) is Struct
+
+    def isInt(self, key: str, tree: dict) -> bool:
+        return type(tree[key]) is FormatField and (
+            'b' in tree[key].fmtstr.lower() or
+            'h' in tree[key].fmtstr.lower() or
+            'l' in tree[key].fmtstr.lower() or
+            'q' in tree[key].fmtstr.lower()
+        )
+
+    def isFloat(self, key: str, tree: dict) -> bool:
+        return type(tree[key]) is FormatField and (
+            'e' in tree[key].fmtstr.lower() or
+            'f' in tree[key].fmtstr.lower() or
+            'd' in tree[key].fmtstr.lower()
+        )
 
     def _isStruct(self, subcon: Subconstruct) -> bool:
         return type(subcon) == Struct

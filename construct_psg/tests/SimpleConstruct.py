@@ -1,5 +1,17 @@
-from construct import Struct, Int8un, Int32un, Int32sn, this, StringEncoded, Bytes, Array, Enum
+from construct import (
+    Struct,
+    Int8un,
+    Int32un,
+    Int32sn,
+    this,
+    StringEncoded,
+    Bytes,
+    Array,
+    Enum,
+    Float32n,
+)
 from enum import IntEnum
+
 
 class InternalFormat(IntEnum):
     Screen = 0x0
@@ -9,6 +21,7 @@ class InternalFormat(IntEnum):
     Rgba8 = 0x4
     R32f = 0x5
     Rgb8 = 0x6
+
 
 exampleStructInstance = "ExampleFormat" / Struct(
     "Data" / Int8un,
@@ -41,6 +54,7 @@ exampleStructInstance = "ExampleFormat" / Struct(
             ),
         ),
     ),
+    "FloatsAreCool" / Float32n,
 )
 
 exampleConstructDict = {
@@ -64,6 +78,7 @@ exampleConstructDict = {
             "TextureInternalFormat": InternalFormat.Rg32f,
         },
     ],
+    "FloatsAreCool": 1.337e-69,
 }
 
 exampleJSONDict = {
@@ -87,6 +102,7 @@ exampleJSONDict = {
             "TextureInternalFormat": 0x2,
         },
     ],
+    "FloatsAreCool": 1.337e-69,
 }
 
 exampleConstructBinary = b'\x03=0\x00\x00\xe9\xff\xff\xff\x02\x00\x00\x00hi\x01\x00\x00\x00\x05test1\x02\x01\x02\x02'
