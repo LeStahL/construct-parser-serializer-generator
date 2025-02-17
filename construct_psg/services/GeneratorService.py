@@ -194,7 +194,20 @@ class GeneratorService:
 
         if type(subcon) is Struct:
             return self.caseConversionService.convertToPascal(name) + '()'
-        elif type(subcon) in [Enum, FormatField]:
+        elif type(subcon) is FormatField and (
+            'b' in subcon.fmtstr.lower() or
+            'h' in subcon.fmtstr.lower() or
+            'l' in subcon.fmtstr.lower() or
+            'q' in subcon.fmtstr.lower()
+        ):
+            return '0'
+        elif type(subcon) is FormatField and (
+            'e' in subcon.fmtstr.lower() or
+            'f' in subcon.fmtstr.lower() or
+            'd' in subcon.fmtstr.lower()
+        ):
+            return '0.0'
+        elif type(subcon) is Enum:
             return '0'
         elif type(subcon) in [StringEncoded, Bytes]:
             return "''"
