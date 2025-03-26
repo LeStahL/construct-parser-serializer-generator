@@ -23,6 +23,8 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         {%- set name = key.split('.')[-1] %}
         {%- if generatorService.isEnum(key, _tree) %}
         {{ caseConversionService.convertToCamel(name) }}: {{ generatorService.pythonType(subcon) }} = {{ generatorService.pythonType(subcon) }}({{ generatorService.pythonDefaultValue(subcon) }}),
+        {%- elif generatorService.isStruct(key, _tree) %}
+        {{ caseConversionService.convertToCamel(name) }}: {{ generatorService.pythonType(subcon) }} = {{ generatorService.pythonDefaultValue(subcon) }},
         {%- else %}
         {{ caseConversionService.convertToCamel(name) }}: {{ generatorService.pythonType(subcon) }} = {{ generatorService.pythonDefaultValue(subcon) }},
         {%- endif %}
@@ -36,6 +38,8 @@ class {{ caseConversionService.convertToPascal(con.name) }}:
         self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}
         {%- elif generatorService.isArray(key, _tree) %}
         self.{{ caseConversionService.convertToCamel(name) }} = [] if {{ caseConversionService.convertToCamel(name) }} is None else {{ caseConversionService.convertToCamel(name) }}
+        {%- elif generatorService.isStruct(key, _tree) %}
+        self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}
         {%- else %}
         self.{{ caseConversionService.convertToCamel(name) }} = {{ caseConversionService.convertToCamel(name) }}
         {%- endif %}
