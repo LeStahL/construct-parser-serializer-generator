@@ -113,12 +113,18 @@ class GeneratorService:
         elif type(subcon) is FormatField:
             if subcon.fmtstr[0] == '=':
                 prefix = 'u' if subcon.fmtstr[1].isupper() else ''
-                if subcon.sizeof() == 1:
-                    return prefix + 'int8_t'
-                elif subcon.sizeof() == 2:
-                    return prefix + 'int16_t'
-                elif subcon.sizeof() == 4:
-                    return prefix + 'int32_t'
+                if subcon.fmtstr[1].lower() in 'blhic':
+                    if subcon.sizeof() == 1:
+                        return prefix + 'int8_t'
+                    elif subcon.sizeof() == 2:
+                        return prefix + 'int16_t'
+                    elif subcon.sizeof() == 4:
+                        return prefix + 'int32_t'
+                elif subcon.fmtstr[1].lower() in 'efd':
+                    if subcon.sizeof() == 4:
+                        return 'float'
+                    elif subcon.sizeof() == 8:
+                        return 'double'
         elif type(subcon) in [StringEncoded, Bytes]:
             return 'char *'
         elif type(subcon) is Array:
