@@ -77,7 +77,7 @@ void parse_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConvers
     {{ generatorService.instance(key, 'instance') }} = *({{ generatorService.cType(subcon) }} *)(source + offset);
     offset += {{ generatorService.computableSize(subcon) }};
 #ifdef DEBUG
-    printf("Parsed computable: %d\n", (int32_t){{ generatorService.instance(key, 'instance') }});
+    printf("Parsed computable: {{ generatorService.cFormatString(subcon) }}\n", ({{ generatorService.cType(subcon) }}){{ generatorService.instance(key, 'instance') }});
 #endif // DEBUG
         {%- else %}
             {%- if generatorService.isString(key, _tree) %}

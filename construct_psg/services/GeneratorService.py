@@ -135,6 +135,33 @@ class GeneratorService:
 
         return "void *"
     
+    def cFormatString(self, subcon: Subconstruct) -> str:
+        if type(subcon) is Renamed:
+            subcon = subcon.subcon
+
+        if type(subcon) is FormatField:
+            if subcon.fmtstr[0] == '=':
+                if subcon.fmtstr[1] == 'h':
+                    return '%hd'
+                elif subcon.fmtstr[1] == 'H':
+                    return '%hu'
+                elif subcon.fmtstr[1] == 'i':
+                    return '%d'
+                elif subcon.fmtstr[1] == 'I':
+                    return '%u'
+                elif subcon.fmtstr[1] == 'l':
+                    return '%ld'
+                elif subcon.fmtstr[1] == 'L':
+                    return '%lu'
+                elif subcon.fmtstr[1] == 'q':
+                    return '%lld'
+                elif subcon.fmtstr[1] == 'Q':
+                    return '%llu'
+                elif subcon.fmtstr[1] == 'f':
+                    return '%e'
+                elif subcon.fmtstr[1] == 'd':
+                    return '%le'
+
     def glslType(self, subcon: Subconstruct) -> str:
         name = ""
         if type(subcon) is Renamed:
