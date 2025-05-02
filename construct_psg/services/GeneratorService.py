@@ -445,7 +445,7 @@ class GeneratorService:
 
     def referencedSize(self, tree: dict, key: str) -> int:
         if type(tree[key]) is Array:
-            return list(self.this(tree, tree[key].count._Path__field).keys())[0]    
+            return list(self.this(tree, tree[key].count._Path__field).keys())[0]
         else:
             return list(self.this(tree, tree[key].length._Path__field).keys())[0]
     

@@ -13,15 +13,18 @@ void free_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConversi
         {%- for key in _tree %}
             {%- set subcon = _tree[key] %}
             {%- if generatorService.isArray(key, _tree) %}
-                {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
-                    {%- set index = generatorService.uniqueIdentifier() %}
-                    {%- if generatorService.hasArrayInSubtree(subcon.subcon) %}
+                {%- set size = generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') | int %}
+                {%- if size > 0 %}
+                    {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
+                        {%- set index = generatorService.uniqueIdentifier() %}
+                        {%- if generatorService.hasArrayInSubtree(subcon.subcon) %}
     for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
         free_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t(&{{ generatorService.instance(key, 'instance') }}[{{ index }}]);
     }
+                        {%- endif %}
                     {%- endif %}
-                {%- endif %}
     free({{ generatorService.instance(key, 'instance') }});
+                {%- endif %}
             {%- elif generatorService.isString(key, _tree) %}
     free({{ generatorService.instance(key, 'instance') }});
             {%- endif %}
@@ -93,20 +96,23 @@ void parse_{{ caseConversionService.convertToSnake(con.name) }}_t({{ caseConvers
 #ifdef DEBUG
     printf("Parsing array of size %d.\n", {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
 #endif // DEBUG
+                {%- set size = generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') | int %}
+                {%- if size > 0 %}
     {{ generatorService.instance(key, 'instance') }} = ({{ generatorService.cType(subcon) }}) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }} * sizeof({{ generatorService.cType(subcon.subcon) }}));
 #ifdef DEBUG
     printf("Allocated array.\n");
 #endif // DEBUG
-                {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
+                    {%- if generatorService.isStruct(key + '.' + caseConversionService.convertToSnake(subcon.subcon.name), generatorService.tree(subcon, key)) %}
     for(size_t {{ index }} = 0; {{ index }} < {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }}; ++{{ index }}) {
         parse_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }}, source + offset);
         offset += sizeof_{{ caseConversionService.convertToSnake(subcon.subcon.name) }}_t({{ generatorService.instance(key, 'instance') }} + {{ index }});
     }
-                {%- else %}
+                    {%- else %}
     {{ generatorService.instance(key, 'instance') }} = (char *) malloc({{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
     memcpy({{ generatorService.instance(key, 'instance') }}, source + offset, {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }});
     offset += {{ generatorService.instance(generatorService.referencedSize(_tree, key), 'instance') }};
-                {% endif %}
+                    {% endif %}
+                {%- endif %}
             {%- elif generatorService.isStruct(key, _tree) %}
     parse_{{ generatorService.cType(subcon) }}(&{{ generatorService.instance(key, 'instance') }}, source + offset);
     offset += sizeof_{{ generatorService.cType(subcon) }}(&{{ generatorService.instance(key, 'instance') }});
