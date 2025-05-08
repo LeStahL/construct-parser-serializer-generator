@@ -111,7 +111,7 @@ class GeneratorService:
         if type(subcon) in [Struct, Enum]:
             return self.caseConversionService.convertToSnake(name) + '_t'
         elif type(subcon) is FormatField:
-            if subcon.fmtstr[0] == '=':
+            if subcon.fmtstr[0] in ['=', '<', '>']:
                 prefix = 'u' if subcon.fmtstr[1].isupper() else ''
                 if subcon.fmtstr[1].lower() in 'blhic':
                     if subcon.sizeof() == 1:
@@ -140,7 +140,7 @@ class GeneratorService:
             subcon = subcon.subcon
 
         if type(subcon) is FormatField:
-            if subcon.fmtstr[0] == '=':
+            if subcon.fmtstr[0] in ['=', '<', '>']:
                 if subcon.fmtstr[1] == 'h':
                     return '%hd'
                 elif subcon.fmtstr[1] == 'H':
@@ -173,7 +173,7 @@ class GeneratorService:
         elif type(subcon) is Enum:
             return 'int'
         elif type(subcon) is FormatField:
-            if subcon.fmtstr[0] == '=':
+            if subcon.fmtstr[0] in ['=', '<', '>']:
                 prefix = 'u' if subcon.fmtstr[1].isupper() else ''
                 return prefix + 'int'
         elif type(subcon) in [StringEncoded, Bytes]:

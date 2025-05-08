@@ -1,14 +1,14 @@
 from construct import (
     Struct,
-    Int8un,
-    Int32un,
-    Int32sn,
+    Int8ul,
+    Int32ul,
+    Int32sl,
     this,
     StringEncoded,
     Bytes,
     Array,
     Enum,
-    Float32n,
+    Float32l,
 )
 from enum import IntEnum
 
@@ -24,37 +24,37 @@ class InternalFormat(IntEnum):
 
 
 exampleStructInstance = "ExampleFormat" / Struct(
-    "Data" / Int8un,
+    "Data" / Int8ul,
     "SubStruct" / Struct(
-        "OtherData" / Int32un,
-        "MoreData" / Int32sn,
+        "OtherData" / Int32ul,
+        "MoreData" / Int32sl,
     ),
-    "Size" / Int32un,
+    "Size" / Int32ul,
     "String" / StringEncoded(
         Bytes(this.Size),
         'ascii',
     ),
-    "ArraySize" / Int32un,
+    "ArraySize" / Int32ul,
     "WeNeedArraySupport" / Array(
         this.ArraySize,
         "ArrayContent" / Struct(
-            "StructEntry" / Int8un,
+            "StructEntry" / Int8ul,
             "ThisAString" / StringEncoded(
                 Bytes(this.StructEntry),
                 'ascii',
             ),
-            "NestedArraySize" / Int8un,
+            "NestedArraySize" / Int8ul,
             "NestedArray" / Array(
                 this.NestedArraySize,
-                "NestedArray" / Int8un,
+                "NestedArray" / Int8ul,
             ),
             'TextureInternalFormat' / Enum(
-                'InternalFormat' / Int8un,
+                'InternalFormat' / Int8ul,
                 InternalFormat,
             ),
         ),
     ),
-    "FloatsAreCool" / Float32n,
+    "FloatsAreCool" / Float32l,
 )
 
 exampleConstructDict = {
